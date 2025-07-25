@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <time.h>
 
 typedef struct {
 	uint8_t sender[64];

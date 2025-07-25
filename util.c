@@ -12,7 +12,7 @@ void msgarr_init(msgarr_t *arr) {
 void msgarr_append(msgarr_t *arr, const msg_pak_t *val) {
 	if (arr->size >= arr->cap)
 		arr->mem = realloc(arr->mem, arr->cap * 2);		
-	memcpy(arr->mem[arr->size++], val, sizeof(msg_pak_t));
+	memcpy(&arr->mem[arr->size++], val, sizeof(msg_pak_t));
 }
 
 void msgarr_free(msgarr_t *arr) { free(arr->mem); }
