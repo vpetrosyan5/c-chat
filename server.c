@@ -13,7 +13,7 @@
 #include "config.h"
 
 int main(int argc, char *argv[]) {
-	int server_fd;;
+	int server_fd;
 	
 	int new_socket;
 	int client_sockets[CONFIG_MAX_CLIENTS];
@@ -24,6 +24,8 @@ int main(int argc, char *argv[]) {
 
 	msg_pak_t user_packet;
 	fd_set readfds;
+
+	msg_pak_t packet_buffer;
 
 	// Create a socket for the server 
 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -49,6 +51,48 @@ int main(int argc, char *argv[]) {
 		FD_SET(server_fd, &readfds);
 		
 		int max_fd = server_fd;			
+		
+		for (int i = 0; i < CONFIG_MAX_CLIENTS; ++i) {
+			int fd = client_sockets[i];
+			if(!fd) break;
+
+			FD_SET(fd, &readfds);
+			if(fd > max_fd) max_fd = fd;
+		} 
+	
+		select(max_fd + 1, &readfds, NULL, NULL, NULL);
+		
+		if (FD_ISSET(server_fd, &readfds)) {
+			new_socket = accept(server_fd, (struct sockaddr *)&address, &addrlen);
+			printf("New connection from %s [FD: %d]\n", inet_ntoa(address.sin_addr), new_socket);
+			for (int i = 0; i < CONFIG_MAX_CLIENTS; ++i)
+				if (client_sockets[i] == 0) {
+					client_sockets[i] = new_socket;
+					break;
+				}
+
+		}
+		
+		for (int i = 0; i < CONFIG_MAX_CLIENTS; ++i) {
+			int fd = client_sockets[i];
+			if (FD_ISSET(fd, &readfds)) {
+				int val = read(fd, &packet_buffer, sizeof(packet_buffer));
+				if (!val) {
+					getpeername(fd, (struct sockaddr *)&address, &addrlen);
+					printf("Client %s disconnected\n", inet_ntoa(address.sin_addr));
+					close(fd);
+					client_sockets[i] = 0;	
+					continue;
+				}
+
+				for (int j = 0; j < CONFIG_MAX_CLIENTS; ++j) {
+					if (client_sockets[j] != 0 && client_sockets[j] != fd) {
+						send(client_sockets[j], &packet_buffer, sizeof(packet_buffer), 0);	
+					}
+				}
+				printf("%s: %s\n", packet_buffer.sender, packet_buffer.msg);
+			}
+		}
 	}		
 
 	return EXIT_SUCCESS;

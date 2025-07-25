@@ -7,7 +7,7 @@
 #include <time.h>
 
 typedef struct {
-	uint8_t sender[64];
+	uint8_t sender[10];
 	uint8_t msg[512];
 	time_t timestamp;
 } msg_pak_t;
