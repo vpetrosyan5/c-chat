@@ -1,19 +1,24 @@
 CC = gcc
 CFLAGS = 
 
-SRCS := $(wildcard *.c)
+SERVER_SRCS := server.c shared.c
+SERVER_OBJS := $(SERVER_SRCS:.c=.o)
+SERVER_TARGET = cchat_server
 
-OBJS := $(SRCS:.c=.o)
+CLIENT_SRCS := client.c shared.c
+CLIENT_OBJS := $(CLIENT_SRCS:.c=.o)
+CLIENT_TARGET = cchat_client
 
-TARGET = cchat
+all: $(SERVER_TARGET) $(CLIENT_TARGET)
 
-all: $(TARGET)
+$(SERVER_TARGET): $(SERVER_OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
 
-$(TARGET): $(OBJS)
+$(CLIENT_TARGET): $(CLIENT_OBJS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f $(SERVER_OBJS) $(CLIENT_OBJS) $(CLIENT_TARGET) $(SERVER_TARGET)
